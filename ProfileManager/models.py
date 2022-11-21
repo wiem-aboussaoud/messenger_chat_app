@@ -47,7 +47,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     """Data base for users in the system Custom User model"""
 
     username = models.CharField(max_length=255, unique=True) #username must be unique
-    image = models.ImageField(default='uploads/image/65ca9c88-115d-4837-b24f-75046046cbc0.png', null=True, blank=True, upload_to=imageFilePath)
+    image = models.ImageField(null=True, blank=True, upload_to=imageFilePath)
     email = models.EmailField(max_length=255, unique=True) #email must be unique
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
