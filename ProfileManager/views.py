@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView, View
-from django.http import JsonResponse
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 
 class UserCreateProfile(APIView):
@@ -28,8 +29,6 @@ class UserLoginApiView(ObtainAuthToken):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
-        print("token :", token)
-        print("created :", created)
         return Response([
             {
                 'token': token.key
@@ -43,3 +42,16 @@ class UserLoginApiView(ObtainAuthToken):
                 'is_superuser': token.user.is_superuser
             }
         ])
+
+
+class FriendsListAPI(APIView):
+
+    # authentication_classes = (TokenAuthentication,)
+    # permission_classes = (IsAuthenticated,)
+
+    serializer_class = FriendsListSerializer
+
+    def get(self, request):
+        friends = UserProfile.objects.filter(is_superuser=False)
+        serializer = FriendsListSerializer(friends, many=True, context={"request": self.request})
+        return Response(serializer.data)

@@ -8,5 +8,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('register/', UserCreateProfile.as_view()),
     path('login/', UserLoginApiView.as_view()),
+    path('friends/', FriendsListAPI.as_view()),
 
 ]

@@ -3,6 +3,7 @@ from .models import *
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import authenticate
 from operator import itemgetter
+from django.contrib.sites.shortcuts import get_current_site
 
 
 class CustumAuthTokenSerializer(serializers.Serializer):
@@ -84,3 +85,17 @@ class UserCreateProfileSerializer(serializers.Serializer):
 
         return user
 
+
+class FriendsListSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    class Meta:
+        model = UserProfile
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'image')
+
+    def get_image(self, obj, *args, **kwargs):
+        if obj.image:
+            current_site = get_current_site(self.context["request"])
+
+            return current_site.domain + obj.image.url
+        else:
+            return None
