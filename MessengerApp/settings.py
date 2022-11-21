@@ -22,7 +22,7 @@ SECRET_KEY = "django-insecure-t1__gq6+^+!2atkvl!b+!op=#(ixg$$e&kdanlhpj7gka@!c_0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["messenger-chat-app-wiem.herokuapp.com"]
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
