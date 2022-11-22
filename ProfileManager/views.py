@@ -31,6 +31,7 @@ class UserLoginApiView(ObtainAuthToken):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
+        current_site = get_current_site(request)
         return Response([
             {
                 'token': token.key
@@ -41,7 +42,7 @@ class UserLoginApiView(ObtainAuthToken):
                 'email': token.user.email,
                 'first_name': token.user.first_name,
                 'last_name': token.user.last_name,
-                'is_superuser': token.user.is_superuser
+                'image': current_site.domain + token.user.image.url if token.user.image else None
             }
         ])
 
