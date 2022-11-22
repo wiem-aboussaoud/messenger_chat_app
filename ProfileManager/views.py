@@ -6,6 +6,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView, View
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets
+from .permissions import *
 
 
 class UserCreateProfile(APIView):
@@ -43,6 +45,18 @@ class UserLoginApiView(ObtainAuthToken):
             }
         ])
 
+
+
+class UserProfileManager(viewsets.ModelViewSet):
+    """Handle update and delete profiles"""
+
+    authentication_classes = (TokenAuthentication,)
+    serializer_class = UserProfileSerializer
+    queryset = UserProfile.objects.all()
+    permission_classes = (IsAuthenticated, UpdateOwnProfile,)
+
+    def get_queryset(self):
+          return UserProfile.objects.filter(username=self.request.user.username)
 
 class FriendsListAPI(APIView):
 

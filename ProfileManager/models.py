@@ -51,6 +51,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True) #email must be unique
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
+    birth_date = models.DateField(null=True, blank=True)
     last_login = models.DateTimeField(auto_now_add=True) #current date_time
     is_active = models.BooleanField(default=False) #User permission profile activate or not
     is_staff = models.BooleanField(default=False)

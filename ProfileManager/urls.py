@@ -3,6 +3,7 @@ from .views import *
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
+router.register('profile', UserProfileManager, basename='userprofile')
 
 urlpatterns = [
     path('', include(router.urls)),

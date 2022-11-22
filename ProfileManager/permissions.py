@@ -2,7 +2,7 @@ from rest_framework import permissions
 class UpdateOwnProfile(permissions.BasePermission):
     """allow users to edit their own profiles"""
     message = 'Access denied'
-    def has_object_permission(seuser_profilelf, request, view, obj):
+    def has_object_permission(self, request, view, obj):
         """Check user is trying to edit their own profile"""
 
         if request.method in permissions.SAFE_METHODS:
