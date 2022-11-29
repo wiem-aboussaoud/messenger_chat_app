@@ -116,15 +116,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class FriendsListSerializer(serializers.ModelSerializer):
-    # image = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'image')
 
-    # def get_image(self, obj, *args, **kwargs):
-    #     if obj.image:
-    #         current_site = get_current_site(self.context["request"])
-    #
-    #         return current_site.domain + obj.image.url
-    #     else:
-    #         return None
+    def get_image(self, obj, *args, **kwargs):
+        if obj.image:
+            current_site = get_current_site(self.context["request"])
+
+            return current_site.domain + obj.image.url
+        else:
+            return None
