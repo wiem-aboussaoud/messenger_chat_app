@@ -34,8 +34,11 @@ class InboxManagerView(APIView):
                                                                     sent_to=OuterRef("pk"))).order_by(
                 "-sent_at").values("id"))).values_list("last_message", flat=True)
         user_groups = request.user.chat_groups.all().values("group")
+        print("user_groups :", user_groups)
         chat_group_last_messsage_id = ChatGroup.objects.filter(id__in=user_groups).annotate(
-            last_message=Subquery(Message.objects.filter(group=OuterRef('pk')).values("id"))).values_list("last_message", flat=True)
+            last_message=Subquery(Message.objects.filter(group=OuterRef('pk')).order_by(
+                "-sent_at").values("id"))).values_list("last_message", flat=True)
+        print("chat_group_last_messsage_id :", chat_group_last_messsage_id)
         messages = Message.objects.filter(id__in=list(last_messages) + list(chat_group_last_messsage_id)).order_by("-sent_at")
         return Response(self.serializer_class(messages, many=True, context={"request": self.request}).data)
 
