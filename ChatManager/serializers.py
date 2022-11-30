@@ -13,7 +13,7 @@ class InboxSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ['id', 'text', "sent_by", "user", "group", "inbox_name", "inbox_image", "is_seen", "sent_at", "seen_at"]
+        fields = ['id', 'text', "sent_by", "user", "inbox_name", "inbox_image", "is_seen", "sent_at", "seen_at"]
 
         extra_kwargs = {
             'sent_by': {'read_only': True},

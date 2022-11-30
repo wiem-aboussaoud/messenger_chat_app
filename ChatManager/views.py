@@ -33,13 +33,12 @@ class InboxManagerView(APIView):
                 Q(sent_by=OuterRef("pk"), sent_to=request.user) | Q(sent_by=request.user,
                                                                     sent_to=OuterRef("pk"))).order_by(
                 "-sent_at").values("id"))).values_list("last_message", flat=True)
-        user_groups = request.user.chat_groups.all().values("group")
-        print("user_groups :", user_groups)
-        chat_group_last_messsage_id = ChatGroup.objects.filter(id__in=user_groups).annotate(
-            last_message=Subquery(Message.objects.filter(group=OuterRef('pk')).order_by(
-                "-sent_at").values("id"))).values_list("last_message", flat=True)
-        print("chat_group_last_messsage_id :", chat_group_last_messsage_id)
-        messages = Message.objects.filter(id__in=list(last_messages) + list(chat_group_last_messsage_id)).order_by("-sent_at")
+        # user_groups = request.user.chat_groups.all().values("group")
+        # chat_group_last_messsage_id = ChatGroup.objects.filter(id__in=user_groups).annotate(
+        #     last_message=Subquery(Message.objects.filter(group=OuterRef('pk')).order_by(
+        #         "-sent_at").values("id"))).values_list("last_message", flat=True)
+        # messages = Message.objects.filter(id__in=list(last_messages) + list(chat_group_last_messsage_id)).order_by("-sent_at")
+        messages = Message.objects.filter(id__in=last_messages).order_by("-sent_at")
         return Response(self.serializer_class(messages, many=True, context={"request": self.request}).data)
 
 
@@ -52,6 +51,7 @@ class InboxMessagesManagerView(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         data = request.query_params.dict()
         user_id = data.get("user_id", None)
+        group_id = data.get("group_id", None)
         if user_id:
             user_obj = UserProfile.objects.get(id=user_id)
             messages = Message.objects.filter(Q(sent_by=user_id, sent_to=request.user) | Q(
@@ -60,7 +60,15 @@ class InboxMessagesManagerView(viewsets.ModelViewSet):
                 "user_info": FriendsListSerializer(user_obj, context={"request": self.request}).data,
                 "messages": self.serializer_class(messages, many=True, context={"request": self.request}).data
             })
-
+        else:
+            return Response({"success": False}, status=404)
+        # elif group_id:
+        #     chat_group = ChatGroup.objects.get(id=group_id)
+        #     messages = chat_group.related_messages.all().order_by("sent_at")
+        #     return Response({
+        #         # "user_info": FriendsListSerializer(user_obj, context={"request": self.request}).data,
+        #         "messages": self.serializer_class(messages, many=True, context={"request": self.request}).data
+        #     })
 
     def create(self, request, *args, **kwargs):
 
