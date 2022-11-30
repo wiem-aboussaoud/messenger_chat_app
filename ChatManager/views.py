@@ -7,8 +7,8 @@ from rest_framework.views import APIView, View
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
-from .models import Message
-from .serializers import MessageSerializer
+from .models import Message, ChatGroup
+from .serializers import InboxSerializer, MessageSerializer
 from django.db.models import Q, Max, Subquery, OuterRef
 from ProfileManager.models import UserProfile
 from ProfileManager.serializers import FriendsListSerializer
@@ -16,7 +16,31 @@ from django.core.validators import ValidationError
 from datetime import datetime
 
 
-class InboxManagerView(viewsets.ModelViewSet):
+class InboxManagerView(APIView):
+
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = InboxSerializer
+
+    def get(self, request):
+        ## get all messages between connected user and others
+        # messages = Message.objects.filter(
+        #     Q(sent_to=request.user) | Q(sent_by=request.user),
+        # ).order_by("-sent_at")
+        last_messages = UserProfile.objects.filter(
+            Q(receiver__sent_by=request.user) | Q(sender__sent_to=request.user)).distinct().annotate(
+            last_message=Subquery(Message.objects.filter(
+                Q(sent_by=OuterRef("pk"), sent_to=request.user) | Q(sent_by=request.user,
+                                                                    sent_to=OuterRef("pk"))).order_by(
+                "-sent_at").values("id"))).values_list("last_message", flat=True)
+        user_groups = request.user.chat_groups.all().values("group")
+        chat_group_last_messsage_id = ChatGroup.objects.filter(id__in=user_groups).annotate(
+            last_message=Subquery(Message.objects.filter(group=OuterRef('pk')).values("id"))).values_list("last_message", flat=True)
+        messages = Message.objects.filter(id__in=list(last_messages) + list(chat_group_last_messsage_id)).order_by("-sent_at")
+        return Response(self.serializer_class(messages, many=True, context={"request": self.request}).data)
+
+
+class InboxMessagesManagerView(viewsets.ModelViewSet):
 
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -33,17 +57,7 @@ class InboxManagerView(viewsets.ModelViewSet):
                 "user_info": FriendsListSerializer(user_obj, context={"request": self.request}).data,
                 "messages": self.serializer_class(messages, many=True, context={"request": self.request}).data
             })
-        else:
-            ## get all messages between connected user and others
-            # messages = Message.objects.filter(
-            #     Q(sent_to=request.user) | Q(sent_by=request.user),
-            # ).order_by("-sent_at")
 
-            last_messages = UserProfile.objects.filter(Q(receiver__sent_by=request.user) | Q(sender__sent_to=request.user)).distinct().annotate(
-                last_message=Subquery(Message.objects.filter(
-                    Q(sent_by=OuterRef("pk"), sent_to=request.user) | Q(sent_by=request.user, sent_to=OuterRef("pk"))).order_by("-sent_at").values("id"))).values("last_message")
-            messages = Message.objects.filter(id__in=last_messages).order_by("-sent_at")
-            return Response(self.serializer_class(messages, many=True, context={"request": self.request}).data)
 
     def create(self, request, *args, **kwargs):
 

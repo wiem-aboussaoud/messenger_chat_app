@@ -23,7 +23,7 @@ class Message(models.Model):
     text = models.TextField()
     sent_by = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="message_sent", related_query_name="sender")
     sent_to = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True, related_name="message_received", related_query_name="receiver")
-    to_group = models.ForeignKey(ChatGroup, on_delete=models.CASCADE, null=True, blank=True, related_name="related_messages")
+    group = models.ForeignKey(ChatGroup, on_delete=models.CASCADE, null=True, blank=True, related_name="related_messages")
     is_seen = models.BooleanField(default=False)
 
     seen_at = models.DateTimeField(null=True, blank=True)
