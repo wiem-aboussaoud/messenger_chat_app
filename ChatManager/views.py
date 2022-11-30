@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from .models import Message
 from .serializers import MessageSerializer
-from django.db.models import Q, Max
+from django.db.models import Q, Max, Subquery, OuterRef
 from ProfileManager.models import UserProfile
 from ProfileManager.serializers import FriendsListSerializer
 from django.core.validators import ValidationError
@@ -34,12 +34,16 @@ class InboxManagerView(viewsets.ModelViewSet):
                 "messages": self.serializer_class(messages, many=True, context={"request": self.request}).data
             })
         else:
-            return Response({"success": False}, status=404)
-            # print("here")
+            ## get all messages between connected user and others
             # messages = Message.objects.filter(
             #     Q(sent_to=request.user) | Q(sent_by=request.user),
             # ).order_by("-sent_at")
-            # return Response(self.serializer_class(messages, many=True).data)
+
+            last_messages = UserProfile.objects.filter(Q(receiver__sent_by=request.user) | Q(sender__sent_to=request.user)).distinct().annotate(
+                last_message=Subquery(Message.objects.filter(
+                    Q(sent_by=OuterRef("pk"), sent_to=request.user) | Q(sent_by=request.user, sent_to=OuterRef("pk"))).order_by("-sent_at").values("id"))).values("last_message")
+            messages = Message.objects.filter(id__in=last_messages).order_by("-sent_at")
+            return Response(self.serializer_class(messages, many=True, context={"request": self.request}).data)
 
     def create(self, request, *args, **kwargs):
 
